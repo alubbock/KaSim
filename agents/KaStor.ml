@@ -32,33 +32,10 @@ let options = [
    "Disable the use of time is story heuritics (for test suite)")
 ]
 
-let process_command _ text =
-  try
-    let json = Yojson.Basic.from_string text in
-    let env = Model.of_yojson (Yojson.Basic.Util.member "env" json) in
-    let steps = Trace.of_yojson (Yojson.Basic.Util.member "trace" json) in
-    let none = match Yojson.Basic.Util.to_bool_option
-                       (Yojson.Basic.Util.member "none" json)
-      with None -> false | Some b -> b in
-    let weak = match Yojson.Basic.Util.to_bool_option
-                       (Yojson.Basic.Util.member "weak" json)
-      with None -> false | Some b -> b in
-    let strong = match Yojson.Basic.Util.to_bool_option
-                         (Yojson.Basic.Util.member "strong" json)
-      with None -> false | Some b -> b in
-    let parameter =
-      Compression_main.build_parameter
-        ~called_from:Remanent_parameters_sig.Server
-        ~none ~weak ~strong in
-    let () = Compression_main.compress_and_print
-        parameter ~dotFormat:Causal.Html
-        env (Compression_main.init_secret_log_info ())
-        steps in
-    Lwt.return_unit
-  with Yojson.Basic.Util.Type_error (e,x) ->
-    (* Format.eprintf "%s:@ %s@." e (Yojson.Basic.pretty_to_string x) *)
-    Lwt.return_unit (*TODO*)
-     | _e -> Lwt.return_unit
+let process_command delimiter text =
+  Kastor_mpi.on_message
+    ~none:!none_compression ~weak:!weak_compression ~strong:!strong_compression
+    ~send_message:(fun x -> Format.printf "%s%c@?" x delimiter) text
 
 let get_simulation fname =
   let env, steps = Trace.fold_trace_file
@@ -87,7 +64,8 @@ let main () =
       (!none_compression, !weak_compression, !strong_compression) in
     let parameter =
       Compression_main.build_parameter
-        ~called_from:Remanent_parameters_sig.KaSim ~none ~weak ~strong in
+        ~called_from:Remanent_parameters_sig.KaSim ?send_message:None
+        ~none ~weak ~strong in
     let () =
       Loggers.fprintf (Compression_main.get_logger parameter)
         "+ Loading trace@." in
