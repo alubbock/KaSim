@@ -17,6 +17,7 @@ let navtabs () =
      ; "DIN",      (Tab_flux.navli ())
      ; "snapshot",  (Tab_snapshot.navli ())
      ; "outputs",   (Tab_outputs.navli ())
+     ; "stories",   (Tab_stories.navli ())
      ; "about",     (Tab_about.navli ())
      ])
 
@@ -31,9 +32,10 @@ let navcontents () =
     ([ "editor",   ["row"], (Tab_editor.content ())
      ; "log",      [],      (Tab_log.content ())
      ; "plot",     [],      (Tab_plot.content ())
-     ; "DIN",     [],      (Tab_flux.content ())
+     ; "DIN",      [],      (Tab_flux.content ())
      ; "snapshot", [],      (Tab_snapshot.content ())
      ; "outputs",  [],      (Tab_outputs.content ())
+     ; "stories",  [],      (Tab_stories.content ())
      ; "about",    ["panel-scroll"],      (Tab_about.content ())
   ])
 
@@ -44,6 +46,7 @@ let onload () =
   let () = Tab_flux.onload () in
   let () = Tab_snapshot.onload () in
   let () = Tab_outputs.onload () in
+  let () = Tab_stories.onload () in
   let () = Tab_about.onload () in
   ()
 
@@ -54,5 +57,6 @@ let onresize () =
   let () = Tab_flux.onresize () in
   let () = Tab_snapshot.onresize () in
   let () = Tab_outputs.onresize () in
+  let () = Tab_stories.onresize () in
   let () = Tab_about.onresize () in
   ()
