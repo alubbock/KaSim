@@ -6,6 +6,10 @@
 (* |_|\_\ * GNU Lesser General Public License Version 3                       *)
 (******************************************************************************)
 
-val on_message :
-  none:bool -> weak:bool -> strong:bool ->
-  send_message:(string -> unit) -> string -> unit
+let on_message (text_message : string) : unit =
+  Kastor_mpi.on_message
+    ~none:false ~weak:true ~strong:false
+    ~send_message:(fun s -> Worker.post_message s)
+    text_message
+
+let () = Worker.set_onmessage on_message

@@ -28,7 +28,7 @@ let on_message ~none ~weak ~strong ~send_message text =
             ~called_from:Remanent_parameters_sig.Server
             ~send_message
             ~none ~weak ~strong in
-      Lwt.return_unit
+      ()
     | `List [ `String "RUN"; json ] ->
       let env = Model.of_yojson (Yojson.Basic.Util.member "model" json) in
       let steps = Trace.of_yojson (Yojson.Basic.Util.member "trace" json) in
@@ -36,12 +36,12 @@ let on_message ~none ~weak ~strong ~send_message text =
           !parameter ~dotFormat:Causal.Html
           env (Compression_main.init_secret_log_info ())
           steps in
-      Lwt.return_unit
+      ()
     | x ->
       raise (Yojson.Basic.Util.Type_error ("Invalid KaStor message",x))
   with Yojson.Basic.Util.Type_error (e,x) ->
     let () = Format.eprintf "%s:@ %s@." e (Yojson.Basic.pretty_to_string x) in
-    Lwt.return_unit (*TODO*)
+    () (*TODO*)
      | e ->
        let () = Format.eprintf "%s@." (Printexc.to_string e) in
-       Lwt.return_unit
+       ()

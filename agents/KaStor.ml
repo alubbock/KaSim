@@ -33,9 +33,10 @@ let options = [
 ]
 
 let process_command delimiter text =
-  Kastor_mpi.on_message
-    ~none:!none_compression ~weak:!weak_compression ~strong:!strong_compression
-    ~send_message:(fun x -> Format.printf "%s%c@?" x delimiter) text
+  let () = Kastor_mpi.on_message
+      ~none:!none_compression ~weak:!weak_compression ~strong:!strong_compression
+      ~send_message:(fun x -> Format.printf "%s%c@?" x delimiter) text in
+  Lwt.return_unit
 
 let get_simulation fname =
   let env, steps = Trace.fold_trace_file
