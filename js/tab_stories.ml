@@ -15,9 +15,28 @@ let tab_was_active = ref false
 
 let navli () = ReactiveData.RList.empty
 
+let none_checkbox = Html.input ~a:[Html.a_input_type `Checkbox] ()
+let weak_checkbox = Html.input ~a:[Html.a_input_type `Checkbox; Html.a_checked ()] ()
+let strong_checkbox = Html.input ~a:[Html.a_input_type `Checkbox] ()
+
+let none_box = Tyxml_js.To_dom.of_input none_checkbox
+let weak_box = Tyxml_js.To_dom.of_input weak_checkbox
+let strong_box = Tyxml_js.To_dom.of_input strong_checkbox
+
 let launch_button = Html.button
-    ~a:[Html.a_class ["btn"; "btn-default"]; Html.a_button_type `Button]
+    ~a:[Html.a_class ["btn"; "btn-default"]; Html.a_button_type `Submit]
     [Html.pcdata "Launch"]
+
+let%html setup_form =
+  {|<form class="form-inline">
+    <div class="form-group">
+    <label>Compression level</label>
+    <div class="checkbox"><label>|}[none_checkbox]{| None</label></div>
+    <div class="checkbox"><label>|}[weak_checkbox]{| Weakly</label></div>
+    <div class="checkbox"><label>|}[strong_checkbox]{| Strongly</label></div>
+    </div>
+    <div class="form-group">|}[launch_button]{|</div>
+    </form>|}
 
 let story_list, list_control = ReactiveData.RList.create []
 let story_log, log_control = ReactiveData.RList.create []
@@ -57,7 +76,7 @@ let rec inspect_stories () =
 
 let select_stories = Tyxml_js.R.Html5.select story_list
 let log_div = Tyxml_js.R.Html5.div
-    ~a:[Html.a_class ["col-sm-2";"panel-pre";"panel-scroll"]]
+    ~a:[Html.a_class ["panel-pre";"panel-scroll"]]
     story_log
 
 let graph_display_id = "story_graph_display"
@@ -66,20 +85,29 @@ let story_graph =
     graph_display_id (fun _ -> ())
 
 let story_content =
-  Html.div (*~a:[Html.a_class ["flex-content"]]*)
     [Html.p ~a:[Html.a_class ["panel-pre"]]
        [Tyxml_js.R.Html5.pcdata current_info];
-     Html.div ~a:[Html.a_id graph_display_id] []]
+     Html.div ~a:[Html.a_id graph_display_id; Html.a_class ["flex-content"]] []]
 
 let content () =
-  [launch_button;
-   Html.div ~a:[Html.a_class ["row"]]
-     [log_div;
-      Html.div ~a:[Html.a_class ["col-sm-10"]]
-        [select_stories;
-        story_content]
-     ]
+  [Html.div ~a:[Html.a_class ["col-md-3";"flex-content"]] [setup_form; log_div];
+   Html.div ~a:[Html.a_class ["col-md-9";"flex-content"]]
+     (select_stories::story_content)
   ]
+
+let do_update_compression_level () =
+  State_project.with_project ~label:"Config compression"
+    (fun manager ->
+       let none = Js.to_bool none_box##.checked in
+       let weak = Js.to_bool weak_box##.checked in
+       let strong = Js.to_bool strong_box##.checked in
+       manager#config_story_computation ~none ~weak ~strong >|=
+       Api_common.result_lift)
+
+let update_compression_level =
+  Dom_html.handler (fun _ ->
+      let _ = do_update_compression_level () in
+      Js._false)
 
 let parent_hide () = set_tab_is_active false
 let parent_shown () = set_tab_is_active !tab_was_active
@@ -93,8 +121,12 @@ let onload () =
       (fun _ ->
          let () = tab_was_active := true in
          let () = set_tab_is_active true in
+         let _ = do_update_compression_level () in
          Lwt.async inspect_stories
       ) in
+  let () = none_box##.onchange := update_compression_level in
+  let () = weak_box##.onchange := update_compression_level in
+  let () = strong_box##.onchange := update_compression_level in
   let () =
       (Tyxml_js.To_dom.of_select select_stories)##.onchange :=
         Dom_html.full_handler (fun select _ ->
