@@ -18,7 +18,8 @@ type state = {
 let state_eq a b =
   a.running = b.running &&
   Option_util.equal (=) a.progress b.progress &&
-  (try List.for_all2 String.equal a.log b.log with Invalid_argument _ -> false)
+  (try List.for_all2 (fun x y -> String.compare x y = 0) a.log b.log
+   with Invalid_argument _ -> false)
   && Mods.IntMap.equal (=) a.stories b.stories
 
 let initial_state = {
