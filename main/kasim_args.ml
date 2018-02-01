@@ -20,6 +20,7 @@ type t = {
   mutable traceFile : string option;
   mutable logFile : string option;
   mutable compileMode : bool;
+  mutable buildBase : string option;
   mutable maxSharing : bool;
   mutable showEfficiency : bool;
   mutable timeIndependent : bool;
@@ -37,6 +38,7 @@ let default : t = {
   traceFile = None;
   logFile = Some "inputs";
   compileMode = false;
+  buildBase = None;
   maxSharing = false;
   showEfficiency = false;
   timeIndependent = false;
@@ -103,6 +105,9 @@ let options (t :t)  : (string * Arg.spec * string) list = [
   ("--compile",
    Arg.Unit (fun () -> t.compileMode <- true),
    "Display rule compilation as action list") ;
+  ("-build-base",
+   Arg.String (fun s -> t.buildBase <- Some s),
+   "Generate instruction for ExtentionBases software") ;
   ("-log",
    Arg.String
      (fun logFile -> t.logFile <- Some logFile),
