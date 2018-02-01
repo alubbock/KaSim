@@ -5,6 +5,20 @@ import distutils.core
 import subprocess
 import setuptools.command.build_ext
 import os.path
+import tokenize
+
+try:
+    _detect_encoding = tokenize.detect_encoding
+except AttributeError:
+    pass
+else:
+    def detect_encoding(readline):
+        try:
+            return _detect_encoding(readline)
+        except SyntaxError:
+            return 'latin-1', []
+
+tokenize.detect_encoding = detect_encoding
 
 class BuildAgentsCommand(distutils.cmd.Command):
     """Instruction to compile Kappa agents"""
@@ -69,6 +83,7 @@ setup(name='kappy',
           '': ['README.rst'],
       },
       packages=['kappy'],
+      scripts=['KaSimAgent', 'KaSaAgent'],
       zip_safe=False,
       # This distribution contains binaries not built with
       # distutils. So we must create a dummy Extension object so when
